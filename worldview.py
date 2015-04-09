@@ -99,7 +99,7 @@ def get_tile_image(view, view_tile_pt):
    if occupant:
       img = pygame.Surface((view.tile_width, view.tile_height))
       img.blit(bgnd, (0, 0))
-      img.blit(entities.occupant.get_image(), (0,0))
+      img.blit(occupant.get_image(), (0,0))
       return img
    else:
       return bgnd

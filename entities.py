@@ -9,7 +9,7 @@ class Background:
    def get_images(self):
       return self.imgs
    def get_image(self):
-      return self.imgs[occ_grid.get_cell(self.background, pt)]
+      return self.imgs[self.current_img]
    def get_name(self):
       return worldmodel.get_background(self, point.Point(col, row))
    def next_image(self):

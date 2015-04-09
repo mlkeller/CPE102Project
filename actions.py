@@ -70,10 +70,10 @@ def blob_next_position(world, entity_pt, dest_pt):
 
 
 def miner_to_ore(world, entity, ore):
-   entity_pt = entities.entity.get_position()
+   entity_pt = entity.get_position()
    if not ore:
       return ([entity_pt], False)
-   ore_pt = entities.ore.get_position()
+   ore_pt = ore.get_position()
    if adjacent(entity_pt, ore_pt):
       entity.set_resource_count(
          1 + entity.get_resource_count())
@@ -88,10 +88,10 @@ def miner_to_smith(world, entity, smith):
    entity_pt = entity.get_position()
    if not smith:
       return ([entity_pt], False)
-   smith_pt = entities.smith.get_position()
+   smith_pt = smith.get_position()
    if adjacent(entity_pt, smith_pt):
-      entities.smith.set_resource_count(
-         entities.smith.get_resource_count() +
+      smith.set_resource_count(
+         smith.get_resource_count() +
          entity.get_resource_count())
       entity.set_resource_count(0)
       return ([], True)
@@ -115,7 +115,7 @@ def create_miner_not_full_action(world, entity, i_store):
 
       schedule_action(world, new_entity,
          create_miner_action(world, new_entity, i_store),
-         current_ticks + entities.new_entity.get_rate())
+         current_ticks + new_entity.get_rate())
       return tiles
    return action
 
@@ -135,7 +135,7 @@ def create_miner_full_action(world, entity, i_store):
 
       schedule_action(world, new_entity,
          create_miner_action(world, new_entity, i_store),
-         current_ticks + entities.new_entity.get_rate())
+         current_ticks + new_entity.get_rate())
       return tiles
    return action
 
@@ -285,7 +285,7 @@ def create_ore_transform_action(world, entity, i_store):
       remove_entity(world, entity)
       worldmodel.add_entity(world, blob)
 
-      return [entities.blob.get_position()]
+      return [blob.get_position()]
    return action
 
 
@@ -307,7 +307,7 @@ def create_blob(world, name, pt, rate, ticks, i_store):
 
 def schedule_blob(world, blob, ticks, i_store):
    schedule_action(world, blob, create_ore_blob_action(world, blob, i_store),
-      ticks + entities.blob.get_rate())
+      ticks + blob.get_rate())
    schedule_animation(world, blob)
 
 

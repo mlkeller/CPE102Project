@@ -14,7 +14,7 @@ class WorldModel:
       self.entities = []
       self.action_queue = ordered_list.OrderedList()
    def get_image(self, pt):
-      return occ_grid.get_cell(self.background, pt)
+      return occ_grid.get_cell(self.background, pt).get_image()
 
 def within_bounds(world, pt):
    return (pt.x >= 0 and pt.x < world.num_cols and
@@ -44,7 +44,7 @@ def distance_sq(p1, p2):
 
 
 def find_nearest(world, pt, type):
-   oftype = [(e, distance_sq(pt, entities.e.get_position()))
+   oftype = [(e, distance_sq(pt, e.get_position()))
       for e in world.entities if isinstance(e, type)]
 
    return nearest_entity(oftype)
