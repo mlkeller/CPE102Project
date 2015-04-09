@@ -52,7 +52,7 @@ def draw_entities(view):
    for entity in view.world.entities:
       if view.viewport.collidepoint(entity.position.x, entity.position.y):
          v_pt = world_to_viewport(view.viewport, entity.position)
-         view.screen.blit(entities.entity.get_image(),
+         view.screen.blit(entity.get_image(),
             (v_pt.x * view.tile_width, v_pt.y * view.tile_height))
 
 

@@ -64,8 +64,7 @@ def save_entities(world, file):
 def save_background(world, file):
    for row in range(0, world.num_rows):
       for col in range(0, world.num_cols):
-         file.write('background ' +
-            entities.world.get_name() +
+         file.write('background ' + world.get_name() +
             ' ' + str(col) + ' ' + str(row) + '\n')
 
 

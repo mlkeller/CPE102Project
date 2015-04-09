@@ -13,7 +13,8 @@ class WorldModel:
       self.occupancy = occ_grid.Grid(num_cols, num_rows, None)
       self.entities = []
       self.action_queue = ordered_list.OrderedList()
-
+   def get_image(self, pt):
+      return occ_grid.get_cell(self.background, pt)
 
 def within_bounds(world, pt):
    return (pt.x >= 0 and pt.x < world.num_cols and
@@ -50,7 +51,7 @@ def find_nearest(world, pt, type):
 
 
 def add_entity(world, entity):
-   pt = entities.entity.get_position()
+   pt = entity.get_position()
    if within_bounds(world, pt):
       old_entity = occ_grid.get_cell(world.occupancy, pt)
       if old_entity != None:
@@ -62,25 +63,25 @@ def add_entity(world, entity):
 def move_entity(world, entity, pt):
    tiles = []
    if within_bounds(world, pt):
-      old_pt = entities.entity.get_position()
+      old_pt = entity.get_position()
       occ_grid.set_cell(world.occupancy, old_pt, None)
       tiles.append(old_pt)
       occ_grid.set_cell(world.occupancy, pt, entity)
       tiles.append(pt)
-      entities.entity.set_position(pt)
+      entity.set_position(pt)
 
    return tiles
 
 
 def remove_entity(world, entity):
-   remove_entity_at(world, entities.entity.get_position())
+   remove_entity_at(world, entity.get_position())
 
 
 def remove_entity_at(world, pt):
    if (within_bounds(world, pt) and
       occ_grid.get_cell(world.occupancy, pt) != None):
       entity = occ_grid.get_cell(world.occupancy, pt)
-      entities.entity.set_position(point.Point(-1, -1))
+      entity.set_position(point.Point(-1, -1))
       world.entities.remove(entity)
       occ_grid.set_cell(world.occupancy, pt, None)
 
@@ -107,7 +108,7 @@ def update_on_time(world, ticks):
 
 def get_background_image(world, pt):
    if within_bounds(world, pt):
-      return entities.world.get_image()
+      return world.get_image(pt)
 
 
 def get_background(world, pt):
