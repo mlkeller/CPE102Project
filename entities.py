@@ -135,10 +135,7 @@ class MinerNotFull:
          return new_entity
 
    def create_miner_action(self, world, image_store):
-      if isinstance(self, MinerNotFull):
-         return world.create_miner_not_full_action(self, image_store)
-      else:
-         return world.create_miner_full_action(self, image_store)
+      return world.create_miner_not_full_action(self, image_store)
 
    def create_animation_action(self, world, repeat_count):
       def action(current_ticks):
@@ -258,10 +255,7 @@ class MinerFull:
       return new_entity
 
    def create_miner_action(self, world, image_store):
-      if isinstance(self, MinerNotFull):
-         return world.create_miner_not_full_action(self, image_store)
-      else:
-         return world.create_miner_full_action(self, image_store)
+      return world.create_miner_full_action(self, image_store)
 
    def create_animation_action(self, world, repeat_count):
       def action(current_ticks):

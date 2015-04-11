@@ -179,3 +179,4 @@ def schedule_entity(world, entity, i_store):
       entity.schedule_vein(world, 0, i_store)
    elif isinstance(entity, entities.Ore):
       entity.schedule_ore(world, 0, i_store)
+

@@ -27,9 +27,14 @@ class WorldView:
       return point.Point(pt.x - self.viewport.left, pt.y - self.viewport.top)
 
    def create_shifted_viewport(self, delta, num_rows, num_cols):
-      new_x = clamp(self.viewport.left + delta[0], 0, num_cols - self.viewport.width)
-      new_y = clamp(self.viewport.top + delta[1], 0, num_rows - self.viewport.height)
+      new_x = self.clamp(self.viewport.left + delta[0], 0,
+         num_cols - self.viewport.width)
+      new_y = self.clamp(self.viewport.top + delta[1], 0,
+         num_rows - self.viewport.height)
       return pygame.Rect(new_x, new_y, self.viewport.width, self.viewport.height)
+
+   def clamp(self, v, low, high):
+      return min(high, max(v, low))
 
    def draw_background(self):
       for y in range(0, self.viewport.height):
@@ -118,8 +123,4 @@ class WorldView:
       rects.append(self.update_mouse_cursor())
 
       pygame.display.update(rects)
-
-
-def clamp(v, low, high):
-   return min(high, max(v, low))
 

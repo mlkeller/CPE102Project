@@ -29,10 +29,6 @@ SMITH_RATE_MIN = 2000
 SMITH_RATE_MAX = 4000
 
 
-def mouse_to_tile(pos, tile_width, tile_height):
-   return point.Point(pos[0] // tile_width, pos[1] // tile_height)
-
-
 def save_world(world, filename):
    with open(filename, 'w') as file:
       save_load.save_world(world, file)
@@ -41,6 +37,37 @@ def save_world(world, filename):
 def load_world(world, i_store, filename):
    with open(filename, 'r') as file:
       save_load.load_world(world, i_store, file)
+
+
+def mouse_to_tile(pos, tile_width, tile_height):
+   return point.Point(pos[0] // tile_width, pos[1] // tile_height)
+
+
+def handle_mouse_motion(view, event):
+   mouse_pt = mouse_to_tile(event.pos, view.tile_width, view.tile_height)
+   view.mouse_move(mouse_pt)
+
+
+def handle_mouse_button(view, world, event, entity_select, i_store):
+   mouse_pt = mouse_to_tile(event.pos, view.tile_width, view.tile_height)
+   tile_view_pt = view.viewport_to_world(mouse_pt)
+   if event.button == mouse_buttons.LEFT and entity_select:
+      if is_background_tile(entity_select):
+         world.set_background(tile_view_pt,
+            entities.Background(entity_select,
+               image_store.get_images(i_store, entity_select)))
+         return [tile_view_pt]
+      else:
+         new_entity = create_new_entity(tile_view_pt, entity_select, i_store)
+         if new_entity:
+            world.remove_entity_at(tile_view_pt)
+            world.add_entity(new_entity)
+            return [tile_view_pt]
+   elif event.button == mouse_buttons.RIGHT:
+      world.remove_entity_at(tile_view_pt)
+      return [tile_view_pt]
+
+   return []
 
 
 def on_keydown(event, world, entity_select, i_store):
@@ -56,11 +83,6 @@ def on_keydown(event, world, entity_select, i_store):
    elif event.key == keys.LOAD_KEY: load_world(world, i_store, WORLD_FILE_NAME)
 
    return ((x_delta, y_delta), entity_select)
-
-
-def handle_mouse_motion(view, event):
-   mouse_pt = mouse_to_tile(event.pos, view.tile_width, view.tile_height)
-   view.mouse_move(mouse_pt)
 
 
 def handle_keydown(view, event, i_store, world, entity_select):
@@ -97,28 +119,6 @@ def create_new_entity(pt, entity_select, i_store):
 
 def is_background_tile(entity_select):
    return entity_select in BACKGROUND_TAGS
-
-
-def handle_mouse_button(view, world, event, entity_select, i_store):
-   mouse_pt = mouse_to_tile(event.pos, view.tile_width, view.tile_height)
-   tile_view_pt = view.viewport_to_world(mouse_pt)
-   if event.button == mouse_buttons.LEFT and entity_select:
-      if is_background_tile(entity_select):
-         world.set_background(tile_view_pt,
-            entities.Background(entity_select,
-               image_store.get_images(i_store, entity_select)))
-         return [tile_view_pt]
-      else:
-         new_entity = create_new_entity(tile_view_pt, entity_select, i_store)
-         if new_entity:
-            world.remove_entity_at(tile_view_pt)
-            world.add_entity(new_entity)
-            return [tile_view_pt]
-   elif event.button == mouse_buttons.RIGHT:
-      world.remove_entity_at(tile_view_pt)
-      return [tile_view_pt]
-
-   return []
 
 
 def activity_loop(view, world, i_store):

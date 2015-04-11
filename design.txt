@@ -1,0 +1,351 @@
+DESIGN
+
+Class: Background
+methods:
+    __init__
+    get_images
+    get_image
+    get_name
+    next_image
+    create_animation_action
+
+Class: MinerNotFull:
+methods:
+    __init__
+    entity_string
+    set_position
+    get_position
+    get_images
+    get_image
+    get_rate
+    set_resource_count
+    get_resource_count
+    get_resource_limit
+    get_name
+    get_animation_rate
+    remove_pending_action
+    add_pending_action
+    get_pending_actions
+    clear_pending_actions
+    next_image
+    try_transform_miner
+    try_transform_miner_not_full
+    create_miner_action
+    create_animation_action
+    remove_entity
+    schedule_miner
+    schedule_action
+    schedule_animation
+
+Class: MinerFull
+methods:
+    __init__
+    set_position
+    get_position
+    get_images
+    get_image
+    get_rate
+    set_resource_count
+    get_resource_count
+    get_resource_limit
+    get_name
+    get_animation_rate
+    remove_pending_action
+    add_pending_action
+    get_pending_actions
+    clear_pending_actions
+    next_image
+    try_transform_miner
+    try_transform_miner_full
+    create_miner_action
+    create_animation_action
+    remove_entity
+    schedule_miner
+    schedule_action
+    schedule_animation
+
+Class: Vein
+methods:
+    __init__
+    entity_string
+    set_position
+    get_position
+    get_images
+    get_image
+    get_rate
+    get_resource_distance
+    get_name
+    remove_pending_action
+    add_pending_action
+    get_pending_actions
+    clear_pending_actions
+    next_image
+    create_animation_action
+    remove_entity
+    schedule_vein
+    schedule_action
+
+Class: Ore
+methods:
+    __init__
+    entity_string
+    set_position
+    get_position
+    get_images
+    get_image
+    get_rate
+    get_name
+    remove_pending_action
+    add_pending_action
+    get_pending_actions
+    clear_pending_actions
+    next_image
+    create_ore_transform_action
+    remove_entity
+    schedule_ore
+    schedule_action
+
+Class: Blacksmith
+methods:
+    __init__
+    entity_string
+    set_position
+    get_position
+    get_images
+    get_image
+    get_rate
+    set_resource_count
+    get_resource_count
+    get_resource_limit
+    get_resource_distance
+    get_name
+    remove_pending_action
+    add_pending_action
+    get_pending_actions
+    clear_pending_actions
+    next_image
+    remove_entity
+    schedule_action
+
+Class: Obstacle
+methods:
+    __init__
+    entity_string
+    set_position
+    get_position
+    get_images
+    get_image
+    get_name
+    next_image
+    remove_entity
+
+Class: OreBlob
+methods:
+    __init__
+    set_position
+    get_position
+    get_images
+    get_image
+    get_rate
+    get_name
+    get_animation_rate
+    remove_pending_action
+    add_pending_action
+    get_pending_actions
+    clear_pending_actions
+    next_image
+    create_animation_action
+    remove_entity
+    schedule_blob
+    schedule_action
+    schedule_animation
+
+Class: Quake
+methods:
+    __init__
+    set_position
+    get_position
+    get_images
+    get_image
+    get_name
+    get_animation_rate
+    remove_pending_action
+    add_pending_action
+    get_pending_actions
+    clear_pending_actions
+    next_image
+    create_animation_action
+    create_entity_death_action
+    remove_entity
+    schedule_quake
+    schedule_action
+    schedule_animation
+
+Class: Grid
+methods:
+    __init__
+    set_cell
+    get_cell
+
+Class: OrderedList
+methods:
+    __init__
+    insert
+    remove
+    head
+    pop
+
+Class: ListItem
+methods:
+    __init__
+    __eq__
+
+Class: WorldModel
+methods:
+    __init__
+    sign
+    adjacent
+    get_image
+    within_bounds
+    is_occupied
+    find_nearest
+    add_entity
+    move_entity
+    remove_entity
+    remove_entity_at
+    schedule_action
+    unschedule_action
+    update_on_time
+    get_background_image
+    get_background
+    set_background
+    get_tile_occupant
+    get_entities
+    next_position
+    blob_next_position
+    miner_to_ore
+    miner_to_smith
+    create_miner_not_full_action
+    create_miner_full_action
+    blob_to_vein
+    create_ore_blob_action
+    find_open_around
+    create_vein_action
+    create_blob
+    create_ore
+    create_quake
+    create_vein
+    clear_pending_actions
+
+Class: WorldView
+methods:
+    __init__
+    viewport_to_world
+    world_to_viewport
+    create_shifted_viewport
+    clamp
+    draw_background
+    draw_entities
+    draw_viewport
+    update_view
+    update_view_tiles
+    update_tile
+    get_tile_image
+    create_mouse_surface
+    update_mouse_cursor
+    mouse_move
+
+
+Functions Not Included In Classes:
+
+file: builder.py
+    create_default_background
+    main
+      These functions were not included in classes because they involved routine 
+    setting up of pygame, and did not fit in any classes.
+
+file: builder_controller.py
+    save_world
+    load_world
+      These functions involved saving and loading the world, which did not fit into
+    any existing class.
+
+    mouse_to_tile
+    handle_mouse_motion
+    handle_mouse_button
+    on_keydown
+    handle_keydown
+      These functions were not included in classes because they were not specific to
+    objects, instead handling user input.
+
+    create_new_entity
+    is_background_tile
+      These functions were not included because it did not involve doing operations on
+    any of the data in any class, except in a general naming sense.
+
+    activity_loop
+      This function was not included in a class because there was no logical class
+    that it was associated with, and it is involved in pygame setup.
+
+file: controller.py
+    on_keydown
+    mouse_to_tile
+    handle_time_event
+    handle_mouse_motion
+    handle_keydown
+      These functions were not included in classes because they were not specific to
+    objects, instead handling user input.
+
+    activity_loop
+      This function was not included in a class because there was no logical class
+    that it was associated with, and it is involved in pygame setup.
+
+file: image_store.py
+    create_default_image
+    load_image
+    process_image_line
+    get_images_internal
+    get_images
+      These functions all deal with the creation and loading of images in a global
+    sense, so it would not make sense to include them in a class.
+
+file: main.py
+    create_default_background
+    load_world
+      These functions are the most global, including the main() function, and loading
+    the whole world and background, so including them in a class does not make sense.
+
+file: save_load.py
+    save_world
+    save_entities
+    get_entity_string
+    save_background
+    load_world
+    add_background
+    add_entity
+      These functions were not included in classes because they involve writing to or
+    reading from a file.
+
+    create_from_properties
+    create_miner
+    create_vein
+    create_ore
+    create_blacksmith
+    create_obstacle
+      These functions were not included as methods because while they do participate
+    in the creation of entities, it is the creation of the actual instances, which
+    is something that doesn't make sense to do from inside the class that it is an 
+    instance of.
+
+    schedule_entity
+      This function was not included in classes because when it is implemented as a
+    method, classes that were not used in the original function attempted to use it.
+    Furthermore, it involves the timing of the world as a whole, so it would also
+    make sense as a function.
+
+file worldmodel.py
+    nearest_entity
+    distance_sq
+      These functions were kept as functions because while methods in worldmodel.py
+    use them, they aren't really operations that are done on specific classes.
+
