@@ -119,7 +119,6 @@ class WorldView:
 
       pygame.display.update(rects)
 
-#####
 
 def clamp(v, low, high):
    return min(high, max(v, low))

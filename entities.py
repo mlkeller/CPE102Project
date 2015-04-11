@@ -7,6 +7,10 @@ BLOB_ANIMATION_RATE_SCALE = 50
 BLOB_ANIMATION_MIN = 1
 BLOB_ANIMATION_MAX = 3
 
+QUAKE_STEPS = 10
+QUAKE_DURATION = 1100
+QUAKE_ANIMATION_RATE = 100
+
 
 class Background:
    def __init__(self, name, imgs):
@@ -33,7 +37,7 @@ class Background:
          self.next_image()
 
          if repeat_count != 1:
-            actions.schedule_action(world, self,
+            self.schedule_action(world,
                self.create_animation_action(world, max(repeat_count - 1, 0)),
                current_ticks + self.get_animation_rate())
 
@@ -53,6 +57,11 @@ class MinerNotFull:
       self.resource_count = 0
       self.animation_rate = animation_rate
       self.pending_actions = []
+
+   def entity_string(self):
+      return ' '.join(['miner', entity.name, str(entity.position.x),
+         str(entity.position.y), str(entity.resource_limit),
+         str(entity.rate), str(entity.animation_rate)])
 
    def set_position(self, point):
       self.position = point
@@ -108,10 +117,10 @@ class MinerNotFull:
    def try_transform_miner(self, world, transform):
       new_entity = transform(world)
       if self != new_entity:
-         actions.clear_pending_actions(world, self)
+         world.clear_pending_actions(self)
          world.remove_entity_at(self.get_position())
          world.add_entity(new_entity)
-         actions.schedule_animation(world, new_entity)
+         new_entity.schedule_animation(world)
 
       return new_entity
 
@@ -138,7 +147,7 @@ class MinerNotFull:
          self.next_image()
 
          if repeat_count != 1:
-            actions.schedule_action(world, self,
+            self.schedule_action(world,
                self.create_animation_action(world, max(repeat_count - 1, 0)),
                current_ticks + self.get_animation_rate())
 
@@ -150,6 +159,21 @@ class MinerNotFull:
          world.unschedule_action(action)
       self.clear_pending_actions()
       world.remove_entity(self)
+
+   def schedule_miner(self, world, ticks, i_store):
+      self.schedule_action(world, self.create_miner_action(world, i_store),
+         ticks + self.get_rate())
+      self.schedule_animation(world)
+
+   def schedule_action(self, world, action, time):
+      self.add_pending_action(action)
+      world.schedule_action(action, time)
+
+   def schedule_animation(self, world, repeat_count=0):
+      self.schedule_action(world,
+         self.create_animation_action(world, repeat_count),
+         self.get_animation_rate())
+
 
 class MinerFull:
    def __init__(self, name, resource_limit, position, rate, imgs,
@@ -218,10 +242,10 @@ class MinerFull:
    def try_transform_miner(self, world, transform):
       new_entity = transform(world)
       if self != new_entity:
-         actions.clear_pending_actions(world, self)
+         world.clear_pending_actions(self)
          world.remove_entity_at(self.get_position())
          world.add_entity(new_entity)
-         actions.schedule_animation(world, new_entity)
+         new_entity.schedule_animation(world)
 
       return new_entity
 
@@ -246,7 +270,7 @@ class MinerFull:
          self.next_image()
 
          if repeat_count != 1:
-            actions.schedule_action(world, self,
+            self.schedule_action(world,
                self.create_animation_action(world, max(repeat_count - 1, 0)),
                current_ticks + self.get_animation_rate())
 
@@ -259,6 +283,22 @@ class MinerFull:
       self.clear_pending_actions()
       world.remove_entity(self)
 
+   def schedule_miner(self, world, ticks, i_store):
+      self.schedule_action(world, self.create_miner_action(world, i_store),
+         ticks + self.get_rate())
+      self.schedule_animation(world)
+
+   def schedule_action(self, world, action, time):
+      self.add_pending_action(action)
+      world.schedule_action(action, time)
+
+   def schedule_animation(self, world, repeat_count=0):
+      self.schedule_action(world,
+         self.create_animation_action(world, repeat_count),
+         self.get_animation_rate())
+
+
+#Does this class even do anything?
 class Vein:
    def __init__(self, name, rate, position, imgs, resource_distance=1):
       self.name = name
@@ -268,6 +308,11 @@ class Vein:
       self.current_img = 0
       self.resource_distance = resource_distance
       self.pending_actions = []
+
+   def entity_string(self):
+      return ' '.join(['vein', entity.name, str(entity.position.x),
+         str(entity.position.y), str(entity.rate),
+         str(entity.resource_distance)])
 
    def set_position(self, point):
       self.position = point
@@ -318,7 +363,7 @@ class Vein:
          self.next_image()
 
          if repeat_count != 1:
-            actions.schedule_action(world, self,
+            self.schedule_action(world,
                self.create_animation_action(world, max(repeat_count - 1, 0)),
                current_ticks + self.get_animation_rate())
 
@@ -331,6 +376,15 @@ class Vein:
       self.clear_pending_actions()
       world.remove_entity(self)
 
+   def schedule_vein(self, world, ticks, i_store):
+      self.schedule_action(world, world.create_vein_action(self, i_store),
+         ticks + self.get_rate())
+
+   def schedule_action(self, world, action, time):
+      self.add_pending_action(action)
+      world.schedule_action(action, time)
+
+
 class Ore:
    def __init__(self, name, position, imgs, rate=5000):
       self.name = name
@@ -339,6 +393,10 @@ class Ore:
       self.current_img = 0
       self.rate = rate
       self.pending_actions = []
+
+   def entity_string(self):
+      return ' '.join(['ore', entity.name, str(entity.position.x),
+         str(entity.position.y), str(entity.rate)])
 
    def set_position(self, point):
       self.position = point
@@ -377,20 +435,6 @@ class Ore:
    def next_image(self):
       self.current_img = (self.current_img + 1) % len(self.imgs)
 
-   def create_animation_action(self, world, repeat_count):
-      def action(current_ticks):
-         self.remove_pending_action(action)
-
-         self.next_image()
-
-         if repeat_count != 1:
-            actions.schedule_action(world, self,
-               self.create_animation_action(world, max(repeat_count - 1, 0)),
-               current_ticks + self.get_animation_rate())
-
-         return [self.get_position()]
-      return action
-
    def create_ore_transform_action(self, world, i_store):
       def action(current_ticks):
          self.remove_pending_action(action)
@@ -411,7 +455,15 @@ class Ore:
       self.clear_pending_actions()
       world.remove_entity(self)
 
-   
+   def schedule_ore(self, world, ticks, i_store):
+      self.schedule_action(world,
+         self.create_ore_transform_action(world, i_store),
+         ticks + self.get_rate()) 
+
+   def schedule_action(self, world, action, time):
+      self.add_pending_action(action)
+      world.schedule_action(action, time)
+
 
 class Blacksmith:
    def __init__(self, name, position, imgs, resource_limit, rate,
@@ -425,6 +477,11 @@ class Blacksmith:
       self.rate = rate
       self.resource_distance = resource_distance
       self.pending_actions = []
+
+   def entity_string(self):
+      return ' '.join(['blacksmith', entity.name, str(entity.position.x),
+         str(entity.position.y), str(entity.resource_limit),
+         str(entity.rate), str(entity.resource_distance)])
 
    def set_position(self, point):
       self.position = point
@@ -477,25 +534,16 @@ class Blacksmith:
    def next_image(self):
       self.current_img = (self.current_img + 1) % len(self.imgs)
 
-   def create_animation_action(self, world, repeat_count):
-      def action(current_ticks):
-         self.remove_pending_action(action)
-
-         self.next_image()
-
-         if repeat_count != 1:
-            actions.schedule_action(world, self,
-               self.create_animation_action(world, max(repeat_count - 1, 0)),
-               current_ticks + self.get_animation_rate())
-
-         return [self.get_position()]
-      return action
-
    def remove_entity(self, world):
       for action in self.get_pending_actions():
          world.unschedule_action(action)
       self.clear_pending_actions()
       world.remove_entity(self)
+
+   def schedule_action(self, world, action, time):
+      self.add_pending_action(action)
+      world.schedule_action(action, time)
+
 
 class Obstacle:
    def __init__(self, name, position, imgs):
@@ -503,6 +551,10 @@ class Obstacle:
       self.position = position
       self.imgs = imgs
       self.current_img = 0
+
+   def entity_string(self): 
+      return ' '.join(['obstacle', entity.name, str(entity.position.x),
+         str(entity.position.y)])
 
    def set_position(self, point):
       self.position = point
@@ -527,6 +579,7 @@ class Obstacle:
          world.unschedule_action(action)
       self.clear_pending_actions()
       world.remove_entity(self)
+
 
 class OreBlob:
    def __init__(self, name, position, rate, imgs, animation_rate):
@@ -587,7 +640,7 @@ class OreBlob:
          self.next_image()
 
          if repeat_count != 1:
-            actions.schedule_action(world, self,
+            self.schedule_action(world,
                self.create_animation_action(world, max(repeat_count - 1, 0)),
                current_ticks + self.get_animation_rate())
 
@@ -599,6 +652,22 @@ class OreBlob:
          world.unschedule_action(action)
       self.clear_pending_actions()
       world.remove_entity(self)
+
+   def schedule_blob(self, world, ticks, i_store):
+      self.schedule_action(world, world.create_ore_blob_action(self,
+         i_store),
+         ticks + self.get_rate())
+      self.schedule_animation(world)
+
+   def schedule_action(self, world, action, time):
+      self.add_pending_action(action)
+      world.schedule_action(action, time)
+
+   def schedule_animation(self, world, repeat_count=0):
+      self.schedule_action(world,
+         self.create_animation_action(world, repeat_count),
+         self.get_animation_rate())
+
 
 class Quake:
    def __init__(self, name, position, imgs, animation_rate):
@@ -655,7 +724,7 @@ class Quake:
          self.next_image()
 
          if repeat_count != 1:
-            actions.schedule_action(world, self,
+            self.schedule_action(world,
                self.create_animation_action(world, max(repeat_count - 1, 0)),
                current_ticks + self.get_animation_rate())
 
@@ -676,28 +745,17 @@ class Quake:
       self.clear_pending_actions()
       world.remove_entity(self)
 
-# This is a less than pleasant file format, but structured based on
-# material covered in course.  Something like JSON would be a
-# significant improvement.
-def entity_string(entity):
-   if isinstance(entity, MinerNotFull):
-      return ' '.join(['miner', entity.name, str(entity.position.x),
-         str(entity.position.y), str(entity.resource_limit),
-         str(entity.rate), str(entity.animation_rate)])
-   elif isinstance(entity, Vein):
-      return ' '.join(['vein', entity.name, str(entity.position.x),
-         str(entity.position.y), str(entity.rate),
-         str(entity.resource_distance)])
-   elif isinstance(entity, Ore):
-      return ' '.join(['ore', entity.name, str(entity.position.x),
-         str(entity.position.y), str(entity.rate)])
-   elif isinstance(entity, Blacksmith):
-      return ' '.join(['blacksmith', entity.name, str(entity.position.x),
-         str(entity.position.y), str(entity.resource_limit),
-         str(entity.rate), str(entity.resource_distance)])
-   elif isinstance(entity, Obstacle):
-      return ' '.join(['obstacle', entity.name, str(entity.position.x),
-         str(entity.position.y)])
-   else:
-      return 'unknown'
+   def schedule_quake(self, world, ticks):
+      self.schedule_animation(world, QUAKE_STEPS) 
+      self.schedule_action(world, self.create_entity_death_action(world),
+         ticks + QUAKE_DURATION)
+
+   def schedule_action(self, world, action, time):
+      self.add_pending_action(action)
+      world.schedule_action(action, time)
+
+   def schedule_animation(self, world, repeat_count=0):
+      self.schedule_action(world,
+         self.create_animation_action(world, repeat_count),
+         self.get_animation_rate())
 
