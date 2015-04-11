@@ -1,9 +1,16 @@
-import entities
-import pygame
-import ordered_list
 import actions
+import entities
+import image_store
 import occ_grid
+import ordered_list
 import point
+import pygame
+import random
+
+BLOB_RATE_SCALE = 4
+BLOB_ANIMATION_RATE_SCALE = 50
+BLOB_ANIMATION_MIN = 1
+BLOB_ANIMATION_MAX = 3
 
 class WorldModel:
    def __init__(self, num_rows, num_cols, background):
@@ -58,7 +65,6 @@ class WorldModel:
          occ_grid.get_cell(self.occupancy, pt) != None):
          entity = occ_grid.get_cell(self.occupancy, pt)
          entity.set_position(point.Point(-1, -1))
-         self.entities.remove(entity)
          occ_grid.set_cell(self.occupancy, pt, None)
 
    def schedule_action(self, action, time):
@@ -135,7 +141,7 @@ class WorldModel:
       if actions.adjacent(entity_pt, ore_pt):
          entity.set_resource_count(
             1 + entity.get_resource_count())
-         actions.remove_entity(self, ore)
+         ore.remove_entity(self)
          return ([ore_pt], True)
       else:
          new_pt = self.next_position(entity_pt, ore_pt)
@@ -166,11 +172,11 @@ class WorldModel:
 
          new_entity = entity
          if found:
-            new_entity = actions.try_transform_miner(self, entity,
-               actions.try_transform_miner_not_full)
+            new_entity = entity.try_transform_miner(self,
+               entity.try_transform_miner_not_full)
    
          actions.schedule_action(self, new_entity,
-            actions.create_miner_action(self, new_entity, i_store),
+            new_entity.create_miner_action(self, i_store),
             current_ticks + new_entity.get_rate())
          return tiles
       return action
@@ -185,11 +191,11 @@ class WorldModel:
 
          new_entity = entity
          if found:
-            new_entity = actions.try_transform_miner(self, entity,
-               actions.try_transform_miner_full)
+            new_entity = entity.try_transform_miner(self,
+               entity.try_transform_miner_full)
    
          actions.schedule_action(self, new_entity,
-            actions.create_miner_action(self, new_entity, i_store),
+            new_entity.create_miner_action(self, i_store),
             current_ticks + new_entity.get_rate())
          return tiles
       return action
@@ -200,13 +206,13 @@ class WorldModel:
          return ([entity_pt], False)
       vein_pt = vein.get_position()
       if actions.adjacent(entity_pt, vein_pt):
-         actions.remove_entity(self, vein)
+         vein.remove_entity(self)
          return ([vein_pt], True)
       else:
          new_pt = self.blob_next_position(entity_pt, vein_pt)
          old_entity = self.get_tile_occupant(new_pt)
          if isinstance(old_entity, entities.Ore):
-            actions.remove_entity(self, old_entity)
+            old_entity.remove_entity(self)
          return (self.move_entity(entity, new_pt), False)
 
    def create_ore_blob_action(self, entity, i_store):
@@ -262,7 +268,20 @@ class WorldModel:
          return tiles
       return action
 
+   def create_blob(self, name, pt, rate, ticks, i_store):
+      blob = entities.OreBlob(name, pt, rate,
+         actions.image_store.get_images(i_store, 'blob'),
+         random.randint(BLOB_ANIMATION_MIN, BLOB_ANIMATION_MAX)
+         * BLOB_ANIMATION_RATE_SCALE)
+      self.schedule_blob(blob, ticks, i_store)
+      return blob
 
+   def schedule_blob(self, blob, ticks, i_store):
+      actions.schedule_action(self, blob, self.create_ore_blob_action(blob, i_store),
+         ticks + blob.get_rate())
+      actions.schedule_animation(self, blob)
+
+####
 
 def nearest_entity(entity_dists):
    if len(entity_dists) > 0:
