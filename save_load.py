@@ -119,11 +119,11 @@ def create_from_properties(properties, i_store):
 def create_miner(properties, i_store):
    if len(properties) == MINER_NUM_PROPERTIES:
       miner = entities.MinerNotFull(properties[MINER_NAME],
-         int(properties[MINER_LIMIT]),
          point.Point(int(properties[MINER_COL]), int(properties[MINER_ROW])),
-         int(properties[MINER_RATE]),
          image_store.get_images(i_store, properties[PROPERTY_KEY]),
-         int(properties[MINER_ANIMATION_RATE]))
+         int(properties[MINER_ANIMATION_RATE]),
+         int(properties[MINER_RATE]),
+         int(properties[MINER_LIMIT]))
       return miner
    else:
       return None
@@ -131,9 +131,10 @@ def create_miner(properties, i_store):
 
 def create_vein(properties, i_store):
    if len(properties) == VEIN_NUM_PROPERTIES:
-      vein = entities.Vein(properties[VEIN_NAME], int(properties[VEIN_RATE]),
+      vein = entities.Vein(properties[VEIN_NAME],
          point.Point(int(properties[VEIN_COL]), int(properties[VEIN_ROW])),
          image_store.get_images(i_store, properties[PROPERTY_KEY]),
+         int(properties[VEIN_RATE]),
          int(properties[VEIN_REACH]))
       return vein
    else:
@@ -156,7 +157,7 @@ def create_blacksmith(properties, i_store):
       return entities.Blacksmith(properties[SMITH_NAME],
          point.Point(int(properties[SMITH_COL]), int(properties[SMITH_ROW])),
          image_store.get_images(i_store, properties[PROPERTY_KEY]),
-         int(properties[SMITH_LIMIT]), int(properties[SMITH_RATE]),
+         int(properties[SMITH_RATE]), int(properties[SMITH_LIMIT]),
          int(properties[SMITH_REACH]))
       return smith
    else:
