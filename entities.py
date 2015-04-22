@@ -177,9 +177,6 @@ class Miner(Entity, Animated, Actionable):
 
       return new_entity
 
-   def create_miner_action(self, world, image_store):
-      return world.create_miner_full_action(self, image_store)
-
    def schedule_miner(self, world, ticks, i_store):
       self.schedule_action(world, self.create_miner_action(world, i_store),
          ticks + self.get_rate())
@@ -201,6 +198,9 @@ class MinerNotFull(Miner):
 	    self.get_rate(), self.get_resource_limit())
          return new_entity
 
+   def create_miner_action(self, world, image_store):
+      return world.create_miner_not_full_action(self, image_store)
+
    def entity_string(self):
       return ' '.join(['miner', entity.name, str(entity.position.x),
          str(entity.position.y), str(entity.resource_limit),
@@ -219,6 +219,9 @@ class MinerFull(Miner):
 	 self.get_rate(), self.get_resource_limit())
 
       return new_entity
+
+   def create_miner_action(self, world, image_store):
+      return world.create_miner_full_action(self, image_store)
 
 
 class Vein(Entity, Actionable):
@@ -337,6 +340,11 @@ class OreBlob(Entity, Animated, Actionable):
 
 class Quake(Entity, Animated, Actionable):
 
+   def __init__(self, name, position, imgs, animation_rate):
+      Entity.__init__(self, name, position, imgs)
+      Animated.__init__(self, animation_rate)
+      Actionable.__init__(self)
+
    def create_entity_death_action(self, world):
       def action(current_ticks):
          self.remove_pending_action(action)
@@ -344,6 +352,12 @@ class Quake(Entity, Animated, Actionable):
          self.remove_entity(world)
          return [pt]
       return action
+
+   def remove_entity(self, world):
+      for action in self.get_pending_actions():
+         world.unschedule_action(action)
+      self.clear_pending_actions()
+      world.remove_entity(self)
 
    def schedule_quake(self, world, ticks):
       self.schedule_animation(world, QUAKE_STEPS) 

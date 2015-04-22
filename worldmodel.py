@@ -92,6 +92,7 @@ class WorldModel:
          self.occupancy.get_cell(pt) != None):
          entity = self.occupancy.get_cell(pt)
          entity.set_position(point.Point(-1, -1))
+         self.entities.remove(entity)
          self.occupancy.set_cell(pt, None)
 
    def schedule_action(self, action, time):
@@ -164,7 +165,9 @@ class WorldModel:
       entity_pt = entity.get_position()
       if not ore:
          return ([entity_pt], False)
+      
       ore_pt = ore.get_position()
+      print ore_pt.x, ore_pt.y
       if self.adjacent(entity_pt, ore_pt):
          entity.set_resource_count(
             1 + entity.get_resource_count())
@@ -296,10 +299,10 @@ class WorldModel:
       return action
 
    def create_blob(self, name, pt, rate, ticks, i_store):
-      blob = entities.OreBlob(name, pt, rate,
+      blob = entities.OreBlob(name, pt,
          image_store.get_images(i_store, 'blob'),
          random.randint(BLOB_ANIMATION_MIN, BLOB_ANIMATION_MAX)
-         * BLOB_ANIMATION_RATE_SCALE)
+         * BLOB_ANIMATION_RATE_SCALE, rate)
       blob.schedule_blob(self, ticks, i_store)
       return blob
 
