@@ -13,8 +13,8 @@ BLOB_ANIMATION_RATE_SCALE = 50
 BLOB_ANIMATION_MIN = 1
 BLOB_ANIMATION_MAX = 3
 
-ORE_CORRUPT_MIN = 20000
-ORE_CORRUPT_MAX = 30000
+ORE_CORRUPT_MIN = 2000
+ORE_CORRUPT_MAX = 3000
 
 QUAKE_STEPS = 10
 QUAKE_DURATION = 1100
@@ -46,7 +46,6 @@ class WorldModel:
    def adjacent(self, pt1, pt2):
       return ((pt1.x == pt2.x and abs(pt1.y - pt2.y) == 1) or
          (pt1.y == pt2.y and abs(pt1.x - pt2.x) == 1))
-
 
    def get_image(self, pt):
       return self.background.get_cell(pt).get_image()
@@ -161,111 +160,6 @@ class WorldModel:
 
       return new_pt  
 
-   def miner_to_ore(self, entity, ore):
-      entity_pt = entity.get_position()
-      if not ore:
-         return ([entity_pt], False)
-      
-      ore_pt = ore.get_position()
-      print ore_pt.x, ore_pt.y
-      if self.adjacent(entity_pt, ore_pt):
-         entity.set_resource_count(
-            1 + entity.get_resource_count())
-         ore.remove_entity(self)
-         return ([ore_pt], True)
-      else:
-         new_pt = self.next_position(entity_pt, ore_pt)
-         return (self.move_entity(entity, new_pt), False)
-
-   def miner_to_smith(self, entity, smith):
-      entity_pt = entity.get_position()
-      if not smith:
-         return ([entity_pt], False)
-      smith_pt = smith.get_position()
-      if self.adjacent(entity_pt, smith_pt):
-         smith.set_resource_count(
-            smith.get_resource_count() +
-            entity.get_resource_count())
-         entity.set_resource_count(0)
-         return ([], True)
-      else:
-         new_pt = self.next_position(entity_pt, smith_pt)
-         return (self.move_entity(entity, new_pt), False)
-
-   def create_miner_not_full_action(self, entity, i_store):
-      def action(current_ticks):
-         entity.remove_pending_action(action)
-
-         entity_pt = entity.get_position()
-         ore = self.find_nearest(entity_pt, entities.Ore)
-         (tiles, found) = self.miner_to_ore(entity, ore)
-
-         new_entity = entity
-         if found:
-            new_entity = entity.try_transform_miner(self,
-               entity.try_transform_miner_not_full)
-   
-         new_entity.schedule_action(self,
-            new_entity.create_miner_action(self, i_store),
-            current_ticks + new_entity.get_rate())
-         return tiles
-      return action
-
-   def create_miner_full_action(self, entity, i_store):
-      def action(current_ticks):
-         entity.remove_pending_action(action)
-
-         entity_pt = entity.get_position()
-         smith = self.find_nearest(entity_pt, entities.Blacksmith)
-         (tiles, found) = self.miner_to_smith(entity, smith)
-
-         new_entity = entity
-         if found:
-            new_entity = entity.try_transform_miner(self,
-               entity.try_transform_miner_full)
-   
-         new_entity.schedule_action(self,
-            new_entity.create_miner_action(self, i_store),
-            current_ticks + new_entity.get_rate())
-         return tiles
-      return action
-
-   def blob_to_vein(self, entity, vein):
-      entity_pt = entity.get_position()
-      if not vein:
-         return ([entity_pt], False)
-      vein_pt = vein.get_position()
-      if self.adjacent(entity_pt, vein_pt):
-         vein.remove_entity(self)
-         return ([vein_pt], True)
-      else:
-         new_pt = self.blob_next_position(entity_pt, vein_pt)
-         old_entity = self.get_tile_occupant(new_pt)
-         if isinstance(old_entity, entities.Ore):
-            old_entity.remove_entity(self)
-         return (self.move_entity(entity, new_pt), False)
-
-   def create_ore_blob_action(self, entity, i_store):
-      def action(current_ticks):
-         entity.remove_pending_action(action)
-
-         entity_pt = entity.get_position()
-         vein = self.find_nearest(entity_pt, entities.Vein)
-         (tiles, found) = self.blob_to_vein(entity, vein)
-
-         next_time = current_ticks + entity.get_rate()
-         if found:
-            quake = self.create_quake(tiles[0], current_ticks, i_store)
-            self.add_entity(quake)
-            next_time = current_ticks + entity.get_rate() * 2
-
-         entity.schedule_action(self,
-            self.create_ore_blob_action(entity, i_store),
-            next_time)
-
-         return tiles
-      return action
-
    def find_open_around(self, pt, distance):
       for dy in range(-distance, distance + 1):
          for dx in range(-distance, distance + 1):
@@ -276,27 +170,6 @@ class WorldModel:
                return new_pt
 
       return None
-
-   def create_vein_action(self, entity, i_store):
-      def action(current_ticks):
-         entity.remove_pending_action(action)
-
-         open_pt = self.find_open_around(entity.get_position(),
-            entity.get_resource_distance())
-         if open_pt:
-            ore = self.create_ore(
-               "ore - " + entity.get_name() + " - " + str(current_ticks),
-            open_pt, current_ticks, i_store)
-            self.add_entity(ore)
-            tiles = [open_pt]
-         else:
-            tiles = []
-
-         entity.schedule_action(self,
-            self.create_vein_action(entity, i_store),
-            current_ticks + entity.get_rate())
-         return tiles
-      return action
 
    def create_blob(self, name, pt, rate, ticks, i_store):
       blob = entities.OreBlob(name, pt,
